@@ -2,7 +2,6 @@ package com.devsuperior.dscatalog.models;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Objects;
 
 @Entity
 @Table(name = "tb_category")
