@@ -13,6 +13,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,8 +32,8 @@ public class ProductService {
     //Spring garante com essa notação que isso é uma transação com o banco de dados.
     //o readOnly = true, faz com que não trave o banco de dados,pois é apenas uma transação de leitura.
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAllPaged(PageRequest pageRequest) {
-        Page<Product> list = repository.findAll(pageRequest);
+    public Page<ProductDTO> findAllPaged(Pageable pageable) {
+        Page<Product> list = repository.findAll(pageable);
         return list.map(x -> new ProductDTO(x));
     }
 
@@ -40,6 +41,7 @@ public class ProductService {
     public ProductDTO findById(Long id) {
         Optional<Product> obj = repository.findById(id);
         Product entity = obj.orElseThrow(() -> new ResourceNotFoundException("Id não encontrado"));
+        //O entity.categories, faz com que traga as categorias dos produtos.
         return new ProductDTO(entity, entity.getCategories());
     }
 
@@ -74,6 +76,7 @@ public class ProductService {
 
     }
 
+    //Método para transformar entity em dto.
     private void copyDtoToEntity(ProductDTO dto, Product entity) {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
