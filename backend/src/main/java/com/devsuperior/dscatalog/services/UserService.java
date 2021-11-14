@@ -1,12 +1,12 @@
 package com.devsuperior.dscatalog.services;
 
-import com.devsuperior.dscatalog.dtos.CategoryDTO;
-import com.devsuperior.dscatalog.dtos.ProductDTO;
+import com.devsuperior.dscatalog.dtos.RoleDTO;
 import com.devsuperior.dscatalog.dtos.UserDTO;
-import com.devsuperior.dscatalog.models.Category;
-import com.devsuperior.dscatalog.models.Product;
-import com.devsuperior.dscatalog.repositories.CategoryRepository;
-import com.devsuperior.dscatalog.repositories.ProductRepository;
+import com.devsuperior.dscatalog.dtos.UserInsertDTO;
+import com.devsuperior.dscatalog.models.Role;
+import com.devsuperior.dscatalog.models.User;
+import com.devsuperior.dscatalog.repositories.RoleRepository;
+import com.devsuperior.dscatalog.repositories.UserRepository;
 import com.devsuperior.dscatalog.services.exceptions.DataBaseException;
 import com.devsuperior.dscatalog.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,51 +14,55 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
 @Service
-public class ProductService {
+public class UserService {
+
 
     @Autowired
-    private ProductRepository repository;
-
+    private UserRepository repository;
     @Autowired
-    private CategoryRepository categoryRepository;
+    private RoleRepository roleRepository;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
 
     //Spring garante com essa notação que isso é uma transação com o banco de dados.
     //o readOnly = true, faz com que não trave o banco de dados,pois é apenas uma transação de leitura.
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAllPaged(Pageable pageable) {
-        Page<Product> list = repository.findAll(pageable);
-        return list.map(x -> new ProductDTO(x));
+    public Page<UserDTO> findAllPaged(Pageable pageable) {
+        Page<User> list = repository.findAll(pageable);
+        return list.map(x -> new UserDTO(x));
     }
 
     @Transactional(readOnly = true)
-    public ProductDTO findById(Long id) {
-        Optional<Product> obj = repository.findById(id);
-        Product entity = obj.orElseThrow(() -> new ResourceNotFoundException("Id não encontrado"));
-        //O entity.categories, faz com que traga as categorias dos produtos.
-        return new ProductDTO(entity, entity.getCategories());
+    public UserDTO findById(Long id) {
+        Optional<User> obj = repository.findById(id);
+        User entity = obj.orElseThrow(() -> new ResourceNotFoundException("Id não encontrado"));
+        return new UserDTO(entity);
     }
 
     @Transactional
-    public ProductDTO insert(ProductDTO dto) {
-        Product entity = new Product();
+    public UserDTO insert(UserInsertDTO dto) {
+        User entity = new User();
         copyDtoToEntity(dto, entity);
+        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
         entity = repository.save(entity);
-        return new ProductDTO(entity);
+        return new UserDTO(entity);
     }
 
     @Transactional
-    public ProductDTO update(Long id, ProductDTO dto) {
+    public UserDTO update(Long id, UserDTO dto) {
         try {
-            Product entity = repository.getOne(id);
+            User entity = repository.getOne(id);
             copyDtoToEntity(dto, entity);
             entity = repository.save(entity);
-            return new ProductDTO(entity);
+            return new UserDTO(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id não encontrado " + id);
         }
@@ -76,17 +80,15 @@ public class ProductService {
     }
 
     //Método para transformar entity em dto.
-    private void copyDtoToEntity(ProductDTO dto, Product entity) {
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-        entity.setDate(dto.getDate());
-        entity.setImgUrl(dto.getImgUrl());
-        entity.setPrice(dto.getPrice());
+    private void copyDtoToEntity(UserDTO dto, User entity) {
+       entity.setFirstName(dto.getFirstName());
+       entity.setLastName(dto.getLastName());
+       entity.setEmail(dto.getEmail());
 
-        entity.getCategories().clear();
-        for (CategoryDTO catDto : dto.getCategories()) {
-            Category category = categoryRepository.getOne(catDto.getId());
-            entity.getCategories().add(category);
+        entity.getRoles().clear();
+        for (RoleDTO roleDto : dto.getRoles()) {
+            Role role = roleRepository.getOne(roleDto.getId());
+            entity.getRoles().add(role);
         }
 
     }
