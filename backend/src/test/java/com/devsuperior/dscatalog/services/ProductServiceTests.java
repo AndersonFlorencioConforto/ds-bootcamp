@@ -75,6 +75,8 @@ public class ProductServiceTests {
         //Comportamento simulado do getOne retornando uma exception
         Mockito.when(categoryRepository.getOne(idNaoExistente)).thenThrow(EntityNotFoundException.class);
 
+        Mockito.when(repository.find(ArgumentMatchers.any(),ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn(page);
+
     }
 
     @Test
@@ -104,9 +106,9 @@ public class ProductServiceTests {
     @Test
     public void findAll_DeveriaRetornarUmaPagina() {
         Pageable page = PageRequest.of(0, 10);
-        //Page<ProductDTO> result = service.findAllPaged(page);
-        //Assertions.assertNotNull(result);
-        Mockito.verify(repository, Mockito.times(1)).findAll(page);
+        Page<ProductDTO> result = service.findAllPaged(0L,"",page);
+        Assertions.assertNotNull(result);
+        //Mockito.verify(repository, Mockito.times(1)).findAll(page);
     }
 
     @Test
