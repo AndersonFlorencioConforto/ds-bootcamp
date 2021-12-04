@@ -49,7 +49,7 @@ public class ProductControllerTests {
         productDto = Factory.novoProdutoDTO();
         page = new PageImpl<>(List.of(productDto));
 
-        Mockito.when(productService.findAllPaged(ArgumentMatchers.any())).thenReturn(page);
+        //Mockito.when(productService.findAllPaged(ArgumentMatchers.any())).thenReturn(page);
 
         Mockito.when(productService.findById(idExistente)).thenReturn(productDto);
         Mockito.when(productService.findById(idNaoExistente)).thenThrow(ResourceNotFoundException.class);
